@@ -5,6 +5,7 @@
 *.tasty
 target/
 logs/
+.bsp/
 .bloop
 .dotty-ide-artifact
 .dotty-ide.json
