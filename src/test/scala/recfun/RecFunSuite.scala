@@ -23,9 +23,9 @@ class RecFunSuite extends munit.FunSuite:
 
   // ------ countChange tests -------------------------------------------------
 
-  // test("countChange: example given in instructions") {
-  //   assertEquals(countChange(4,List(1,2)), 3)
-  // }
+  test("countChange: example given in instructions") {
+    assertEquals(countChange(4,List(1,2)), 3)
+  }
 
   // test("countChange: sorted CHF") {
   //   assertEquals(countChange(300,List(5,10,20,50,100,200,500)), 1022)
@@ -52,6 +52,11 @@ class RecFunSuite extends munit.FunSuite:
   test("pascal: col=1,row=3") {
     assertEquals(pascal(1, 3), 3)
   }
+  
+  test("pascal: col=0,row=0") {
+    assertEquals(pascal(0, 0), 1)
+  }
+  
 
   import scala.concurrent.duration.*
   override val munitTimeout = 10.seconds
