@@ -21,11 +21,6 @@ object RecFun extends RecFunInterface:
 
     sqrtIter(1.0)
 
-  def main(args: Array[String]): Unit =
-    println("Pascal's Triangle")
-    for row <- 0 to 10 do
-      for col <- 0 to row do print(s"${pascal(col, row)} ")
-      println()
     // println(getunit(stringTest))
 
   // val stringTest = "hackthegame"
@@ -91,15 +86,7 @@ object RecFun extends RecFunInterface:
   /** Exercise 3
     */
   def countChange(money: Int, coins: List[Int]): Int =
-    var cache = List.empty
     val range = (0 to money).toList
-    def computeValue(amount: Int, coin: Int, prevList: List[Int]) =
-      def getValue(inIndex: Int, list: List[Int]): Option[Int] = Try(
-        list(inIndex)
-      ) match {
-        case Success(v) => Some(v)
-        case Failure(e) => None
-      }
 
     @tailrec def genNewList(
         r: List[Int],
@@ -113,16 +100,72 @@ object RecFun extends RecFunInterface:
         case h :: t => genNewList(t, coin, acc, prevList)
       }
 
-    def gNList(cache: List[Int], currentCoin: Int): List[Int] =
-      @tailrec def rangeLoop(range: List[Int], cache: List[Int]): List[Int] = range match {
-        case Nil => cache
-        case 1 :: t => rangeLoop(t, cache :+ 1)
-        case h :: t => rangeLoop(t, computeCoins(h, cache))
-      }
-      ???
+    def gV(inIndex: Int, list: List[Int]): Int = Try(
+      list(inIndex)
+    ) match {
+      case Success(v) => v
+      case Failure(e) => 0
+    }
 
-    def last = 
-      coins.sorted.foldLeft(cache)((cache: List[Int], currentCoin: Int) => gNList(cache,currentCoin))
-    //return value
-    coins.sorted.foldLeft(cache)(gNList).head
-    
+    def computeNewCache(
+        currentCache: List[Int],
+        currentCoin: Int
+    ): List[Int] =
+
+      def appendToCache(targetAmount: Int, newCache: List[Int]): List[Int] =
+        newCache :+ {
+          if (targetAmount < currentCoin) then 0
+          else if (targetAmount == 0 || targetAmount == currentCoin) then 1
+          else
+            gV(targetAmount - currentCoin, newCache) + gV(
+              targetAmount,
+              currentCache
+            )
+        }
+
+      @tailrec def test2(range: List[Int], newCache: List[Int]): List[Int] =
+        range match {
+          case Nil => newCache
+          case targetAmount :: tail =>
+            test2(
+              tail,
+              appendToCache(targetAmount, newCache)
+            )
+        }
+
+
+      val updatedCache2 =
+        test2(range, List.empty)
+
+      println(
+          s"and updatedCache ${updatedCache2.toList} " +
+          s"current coin $currentCoin, " +
+          s"currentCache => $currentCache"
+      )
+      updatedCache2
+
+
+    def gNCache(cache: List[Int], currentCoin: Int): List[Int] =
+      @tailrec def rangeLoop(
+          range: List[Int],
+          currentCache: List[Int]
+      ): List[Int] =
+        range match {
+          case Nil => currentCache
+          case targetAmount :: t =>
+            rangeLoop(
+              t,
+              computeNewCache(currentCache, currentCoin)
+            )
+        }
+      rangeLoop(range, cache)
+
+    coins.sorted.foldLeft(List.empty)(gNCache).head
+
+  def main(args: Array[String]): Unit =
+    // println("Pascal's Triangle")
+    // for row <- 0 to 10 do
+    //   for col <- 0 to row do print(s"${pascal(col, row)} ")
+    //   println()
+
+    countChange(4, List(1, 2))
