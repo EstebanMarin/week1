@@ -86,81 +86,63 @@ object RecFun extends RecFunInterface:
   /** Exercise 3
     */
   def countChange(money: Int, coins: List[Int]): Int =
-    val range = (0 to money).toList
 
-    @tailrec def genNewList(
-        r: List[Int],
-        coin: Int,
-        acc: List[Int],
-        prevList: List[Int]
-    ): List[Int] =
-      r match {
-        case Nil    => acc
-        case 0 :: t => genNewList(t, coin, acc :+ 1, prevList)
-        case h :: t => genNewList(t, coin, acc, prevList)
+    def gNewCache(cache: List[Int], currentCoin: Int): List[Int] =
+      def gV(inIndex: Int, list: List[Int]): Int = Try(
+        list(inIndex)
+      ) match {
+        case Success(v) => v
+        case Failure(e) => 0
       }
 
-    def gV(inIndex: Int, list: List[Int]): Int = Try(
-      list(inIndex)
-    ) match {
-      case Success(v) => v
-      case Failure(e) => 0
-    }
-
-    def computeNewCache(
-        currentCache: List[Int],
-        currentCoin: Int
-    ): List[Int] =
-
-      def appendToCache(targetAmount: Int, newCache: List[Int]): List[Int] =
+      def appendToNewCache(
+          targetAmount: Int,
+          coin: Int,
+          newCache: List[Int],
+          oldCache: List[Int]
+      ): List[Int] =
         newCache :+ {
-          if (targetAmount < currentCoin) then 0
-          else if (targetAmount == 0 || targetAmount == currentCoin) then 1
+          println("-"*50)
+          println(s"[coin => $coin] targetAmount => ${targetAmount}")
+          println(s"[coin => $coin] , oldCache => ${cache}: newCache => ${newCache}")
+          // error here!!! 
+          // val test = if (targetAmount == 0 || targetAmount == coin) then 1
+          val test = if (targetAmount == 0) then 1
+          else if (targetAmount < coin) then 0
           else
-            gV(targetAmount - currentCoin, newCache) + gV(
+            gV(targetAmount - coin, newCache) 
+            + 
+            gV(
               targetAmount,
-              currentCache
+              oldCache
             )
+          println(s"if statement => $test")
+          println("-"*50)
+          test 
         }
 
-      @tailrec def test2(range: List[Int], newCache: List[Int]): List[Int] =
+      lazy val range: List[Int] = (0 to money).toList
+      @tailrec def newCacheT(
+          range: List[Int],
+          oldCache: List[Int],
+          newCache: List[Int]
+      ): List[Int] =
         range match {
           case Nil => newCache
           case targetAmount :: tail =>
-            test2(
+            newCacheT(
               tail,
-              appendToCache(targetAmount, newCache)
+              oldCache,
+              appendToNewCache(targetAmount, currentCoin, newCache, oldCache)
             )
         }
 
+      val rangeLoop = (0 to money).toList
+      newCacheT(rangeLoop, cache, List.empty)
 
-      val updatedCache2 =
-        test2(range, List.empty)
-
-      println(
-          s"and updatedCache ${updatedCache2.toList} " +
-          s"current coin $currentCoin, " +
-          s"currentCache => $currentCache"
-      )
-      updatedCache2
-
-
-    def gNCache(cache: List[Int], currentCoin: Int): List[Int] =
-      @tailrec def rangeLoop(
-          range: List[Int],
-          currentCache: List[Int]
-      ): List[Int] =
-        range match {
-          case Nil => currentCache
-          case targetAmount :: t =>
-            rangeLoop(
-              t,
-              computeNewCache(currentCache, currentCoin)
-            )
-        }
-      rangeLoop(range, cache)
-
-    coins.sorted.foldLeft(List.empty)(gNCache).head
+    val result = coins.sorted.reverse.foldLeft(List.empty)(gNewCache)
+    println(s"[RESULT] ${result}")
+    result.reverse.head
 
   def main(args: Array[String]): Unit =
     // println("Pascal's Triangle")
@@ -168,4 +150,4 @@ object RecFun extends RecFunInterface:
     //   for col <- 0 to row do print(s"${pascal(col, row)} ")
     //   println()
 
-    countChange(4, List(1, 2))
+    println(countChange(4, List(1, 2)))
