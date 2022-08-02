@@ -64,7 +64,10 @@ object RecFun extends RecFunInterface:
         case v => facTail((1 to abs(v)).toList, 1)
       }
 
-    (r.!) / ((c.!) * ((r - c).!))
+    Try((r.!) / ((c.!) * ((r - c).!))) match {
+      case Success(v) => v
+      case Failure(e) => 1
+    }
 
   /** Exercise 2
     */
@@ -87,6 +90,13 @@ object RecFun extends RecFunInterface:
     */
   def countChange(money: Int, coins: List[Int]): Int =
 
+    def gV(inIndex: Int, list: List[Int]): Int = Try(
+      list(inIndex)
+    ) match {
+      case Success(v) => v
+      case Failure(e) => 0
+    }
+
     def gNewCache(cache: List[Int], currentCoin: Int): List[Int] =
       def gV(inIndex: Int, list: List[Int]): Int = Try(
         list(inIndex)
@@ -102,23 +112,12 @@ object RecFun extends RecFunInterface:
           oldCache: List[Int]
       ): List[Int] =
         newCache :+ {
-          println("-"*50)
-          println(s"[coin => $coin] targetAmount => ${targetAmount}")
-          println(s"[coin => $coin] , oldCache => ${cache}: newCache => ${newCache}")
-          // error here!!! 
-          // val test = if (targetAmount == 0 || targetAmount == coin) then 1
-          val test = if (targetAmount == 0) then 1
+          if (targetAmount == 0) then 1
           else if (targetAmount < coin) then 0
           else
-            gV(targetAmount - coin, newCache) 
-            + 
-            gV(
-              targetAmount,
-              oldCache
-            )
-          println(s"if statement => $test")
-          println("-"*50)
-          test 
+            gV(targetAmount - coin, newCache)
+            +
+            gV(targetAmount, oldCache)
         }
 
       lazy val range: List[Int] = (0 to money).toList
@@ -141,13 +140,13 @@ object RecFun extends RecFunInterface:
       newCacheT(rangeLoop, cache, List.empty)
 
     val result = coins.sorted.reverse.foldLeft(List.empty)(gNewCache)
-    println(s"[RESULT] ${result}")
-    result.reverse.head
+    gV(0, result.reverse)
+    // result.reverse.head
 
   def main(args: Array[String]): Unit =
-    // println("Pascal's Triangle")
-    // for row <- 0 to 10 do
-    //   for col <- 0 to row do print(s"${pascal(col, row)} ")
-    //   println()
+    println("Pascal's Triangle")
+    for row <- 0 to 10 do
+      for col <- 0 to row do print(s"${pascal(col, row)} ")
+      println()
 
     println(countChange(4, List(1, 2)))
